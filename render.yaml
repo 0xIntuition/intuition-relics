@@ -1,0 +1,25 @@
+databases:
+- name: relics-db
+  plan: basic-1gb
+  region: oregon
+  ipAllowList:
+  - source: 0.0.0.0/0
+    description: everywhere
+  postgresMajorVersion: "16"
+  diskSizeGB: 5
+services:
+- type: web
+  name: relics-ponder-indexer
+  runtime: node
+  plan: standard
+  envVars:
+    - key: PONDER_RPC_URL_1
+      sync: false
+    - key: DATABASE_URL
+      fromDatabase:
+        name: relics-db
+        property: connectionString
+  region: oregon
+  buildCommand: pnpm i
+  startCommand: pnpm start --schema public
+  healthCheckPath: /health
