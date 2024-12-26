@@ -17,7 +17,7 @@ ponder.on("ERC721:Transfer", async ({ event, context }) => {
   await context.db
     .insert(schema.token)
     .values({
-      id: event.args.id,
+      id: event.args.tokenId,
       owner: event.args.to,
     })
     .onConflictDoUpdate({ owner: event.args.to });
@@ -27,7 +27,23 @@ ponder.on("ERC721:Transfer", async ({ event, context }) => {
     id: event.log.id,
     from: event.args.from,
     to: event.args.to,
-    token: event.args.id,
+    token: event.args.tokenId,
     timestamp: Number(event.block.timestamp),
   });
+});
+
+ponder.on("ERC721:VoucherRedeemed", async ({ event, context }) => {
+
+  await context.db
+    .insert(schema.account)
+    .values({ address: event.transaction.from })
+    .onConflictDoNothing();
+
+  // Create a VoucherRedeemedEvent.
+  await context.db.insert(schema.voucherRedeemedEvent).values({
+    id: event.log.id,
+    redeemer: event.transaction.from,
+    timestamp: Number(event.block.timestamp),
+  });
+
 });
